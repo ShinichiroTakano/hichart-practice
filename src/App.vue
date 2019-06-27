@@ -4,56 +4,9 @@
       :businessTypes="[{ id: 1, name: 'aaaa' }, { id: 2, name: 'bbbb' }, { id: 3, name: 'cccc' }]"
       :selectedBusinessTypes="[{ id: 1, name: 'aaaa' }]"/> -->
     <HeatMap
-      :progress-list="{
-        userId: {
-          questId: 100,
-          questId: 100,
-          questId: 76,
-          questId: 56,
-          questId: 23,
-          questId: 0,
-          questId: 0,
-          questId: 0,
-          questId: 0,
-          questId: 0
-        }
-      }"
-      :user-accounts="[
-        {
-          id: 1,
-          name: 'User1'
-        }
-      ]"
-      :quests="[
-        {
-          id: 1,
-          name: 'Q1'
-        },
-        {
-          id: 2,
-          name: 'Q2'
-        },
-        {
-          id: 2,
-          name: 'Q2'
-        },
-        {
-          id: 2,
-          name: 'Q2'
-        },
-        {
-          id: 2,
-          name: 'Q2'
-        },
-        {
-          id: 2,
-          name: 'Q2'
-        },
-        {
-          id: 2,
-          name: 'Q2'
-        }
-      ]"/>
+      :user-account-quest-statistics="userAccountQuestStatistics"
+      :user-accounts="userAccount()"
+      :quests="quests()" />
   <UserProcessStatus 
 :users="[
   {
@@ -94,6 +47,26 @@ export default {
     BusinessTypesSelect,
     HeatMap,
     UserProcessStatus
+  },
+  computed: {
+    userAccountQuestStatistics() {
+      return [...Array(50).keys()].reduce((accumulater, userId) => {
+        accumulater[userId] = {}
+        for (let questId of [...Array(20).keys()]) {
+          accumulater[userId][questId] = {}
+          accumulater[userId][questId].progress_rate = Math.floor( Math.random() * 101 )
+        }
+        return accumulater
+      }, {})
+    },
+  },
+  methods: {
+    userAccount() {
+      return [...Array(50).keys()].map(e => ({ id: e, name: `user${e}`}))
+    },
+    quests() {
+      return [...Array(20).keys()].map(e => ({ id: e, name: `Q${e}`}))
+    }
   }
 }
 </script>

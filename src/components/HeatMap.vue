@@ -1,94 +1,89 @@
 <template>
   <div>
-    <div id="quest-progress-heat-map" style="width:100%; height:400px;"></div>
+    <div id="progress-heat-map" style="height: 800px;min-width: 310px; max-width: 800px; margin: 0 auto"></div>
   </div>
 </template>
 <script>
-const Highcharts = require('highcharts')
-const ALL_USERS = '全体(ユーザー上限)'
-const INVITED_USERS = '招待済み'
-const ACTIVE_USERS = 'アクティブ化'
-const PROGRESSING_USERS = '進捗あり'
-const FINISH_USERS = 'Questクリア'
-const INACTIVE_USERS = '非アクティブ'
+import Highcharts from 'highcharts';
+import addHeatmapModule from 'highcharts/modules/heatmap';
+import addTreemapModule from 'highcharts/modules/treemap';
+
+addHeatmapModule(Highcharts);
+addTreemapModule(Highcharts);
 
 export default {
-  name: 'users-status-chart',
+  name: 'progress-heat-map',
   props: {
-    allUsersCount: {
-      type: Number,
+    userAccountQuestStatistics: {
+      type: Object,
       required: true
     },
-    invitedUsersCount: {
-      type: Number,
+    userAccounts: {
+      type: Array,
       required: true
     },
-    activeUsersCount: {
-      type: Number,
-      required: true
-    },
-    progressingUsersCount: {
-      type: Number,
-      required: true
-    },
-    questFinishUsersCount: {
-      type: Number,
-      required: true
-    },
-    inactiveUsersCount: {
-      type: Number,
+    quests: {
+      type: Array,
       required: true
     }
   },
   mounted () {
-    const invitedPercent = this.convertPercent(this.invitedUsersCount)
-    const activePercent = this.convertPercent(this.activeUsersCount)
-    const progressingPercent = this.convertPercent(this.progressingUsersCount)
-    const questFinishPercent = this.convertPercent(this.questFinishUsersCount)
-    const inactivePercent = this.convertPercent(this.inactiveUsersCount)
-    var countMap = {
-      [ALL_USERS]: this.allUsersCount,
-      [INVITED_USERS]: this.invitedUsersCount,
-      [ACTIVE_USERS]: this.activeUsersCount,
-      [PROGRESSING_USERS]: this.progressingUsersCount,
-      [FINISH_USERS]: this.questFinishUsersCount,
-      [INACTIVE_USERS]: this.inactiveUsersCount
+    const quests = this.quests
+    const users = this.userAccounts
+    const userAccountQuestStatistics = this.userAccountQuestStatistics
+    const heatMapContent = []
+    for (let i = 0; i < quests.length; i++) {
+      const quest = quests[i]
+      for (let j = 0; j < users.length; j++) {
+        const user = users[j]
+        const cell = []
+        cell[0] = i
+        cell[1] = j
+        cell[2] = userAccountQuestStatistics[user.id][quest.id].progress_rate
+        heatMapContent.push(cell)
+      }
     }
-    Highcharts.chart('quest-progress-heat-map', {
+    
+    Highcharts.chart('progress-heat-map', {
       chart: {
-        type: 'bar'
+        type: 'heatmap'
       },
       title: {
-        text: 'ユーザーステータス',
-        y: 23
+        text: 'Quests'
       },
       xAxis: {
-        categories: [ALL_USERS, INVITED_USERS, ACTIVE_USERS, PROGRESSING_USERS, FINISH_USERS],
+        categories: quests.map(e => e.name),
+        title: 'Quests',
         margin: 30
       },
       yAxis: {
-        max: 100,
-        title: ''
+        categories: users.map(e => e.name),
+        title: 'Users'
+      },
+      colorAxis: {
+          min: 0,
+          minColor: '#FFFFFF',
+          maxColor: Highcharts.getOptions().colors[0]
+      },
+      legend: {
+        align: 'right',
+        layout: 'vertical',
+        margin: 20,
+        verticalAlign: 'top',
+        y: 50,
+        symbolHeight: 700
       },
       series: [{
-        showInLegend: false,
-        data: [100, invitedPercent, activePercent, progressingPercent, questFinishPercent]
+        name: 'Sales per employee',
+        borderWidth: 1,
+        data: heatMapContent
       }],
       credits: {
         enabled: false
-      },
-      tooltip: {
-        formatter () {
-          return `${this.x}: ${countMap[this.x]}人`
-        }
       }
     })
   },
   methods: {
-    convertPercent (specifiedUserCount) {
-      // 全ユーザに対する割合を%で算出する。
-      return specifiedUserCount / this.allUsersCount * 100
-    }
   }
 }
 </script>
