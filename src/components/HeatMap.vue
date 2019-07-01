@@ -1,6 +1,7 @@
 <template>
   <div>
-    <div id="progress-heat-map" style="height: 800px;min-width: 310px; max-width: 800px; margin: 0 auto"></div>
+    <div id="progress-heat-map">
+    </div>
   </div>
 </template>
 <script>
@@ -29,61 +30,69 @@ export default {
   },
   mounted () {
     const quests = this.quests
-    const users = this.userAccounts
+    const users = this.userAccounts.reverse()
     const userAccountQuestStatistics = this.userAccountQuestStatistics
     const heatMapContent = []
     for (let i = 0; i < quests.length; i++) {
       const quest = quests[i]
       for (let j = 0; j < users.length; j++) {
         const user = users[j]
-        const cell = []
-        cell[0] = i
-        cell[1] = j
-        cell[2] = userAccountQuestStatistics[user.id][quest.id].progress_rate
+        const progressRate = userAccountQuestStatistics[user.id][quest.id].progress_rate
+        const cell = [i, j, progressRate]
         heatMapContent.push(cell)
       }
     }
-    
+    const cellLength = (window.innerWidth * 0.8 / 20)
+    const minHeight = cellLength * users.length
+    const minWidth = cellLength * quests.length
     Highcharts.chart('progress-heat-map', {
       chart: {
-        type: 'heatmap'
+        type: 'heatmap',
+        scrollablePlotArea: {
+          minHeight,
+          minWidth
+        },
+        width: minWidth * 0.9,
+        height: minHeight * 0.9
       },
       title: {
-        text: 'Quests'
+        text: ''
       },
       xAxis: {
         categories: quests.map(e => e.name),
-        title: 'Quests',
-        margin: 30
+        title: '',
+        opposite: true
       },
       yAxis: {
         categories: users.map(e => e.name),
-        title: 'Users'
+        title: ''
       },
       colorAxis: {
-          min: 0,
-          minColor: '#FFFFFF',
-          maxColor: Highcharts.getOptions().colors[0]
+        minColor: '#FFFFFF',
+        maxColor: Highcharts.getOptions().colors[0],
+        gridLineWidth: 0
       },
       legend: {
-        align: 'right',
+        align: 'left',
         layout: 'vertical',
-        margin: 20,
-        verticalAlign: 'top',
-        y: 50,
-        symbolHeight: 700
+        verticalAlign: 'middle',
+        symbolHeight: minHeight * 0.8
       },
       series: [{
-        name: 'Sales per employee',
         borderWidth: 1,
         data: heatMapContent
       }],
+      tooltip: {
+        formatter() {
+          return `<b>進捗詳細</b> : ${this.point.value}%<br>
+                  <b>最終更新日</b> : ${userAccountQuestStatistics[this.point.x][this.point.y].updated_at}
+                 `
+        }
+      },
       credits: {
         enabled: false
       }
     })
-  },
-  methods: {
   }
 }
 </script>

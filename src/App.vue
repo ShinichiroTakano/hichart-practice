@@ -7,7 +7,7 @@
       :user-account-quest-statistics="userAccountQuestStatistics"
       :user-accounts="userAccount()"
       :quests="quests()" />
-  <UserProcessStatus 
+  <!-- <UserProcessStatus 
 :users="[
   {
     id: 1,
@@ -31,7 +31,7 @@
   lastMission: [7, 8, 1],
   clear: [5, 3, 0]
 }"
-  />
+  /> -->
     
   </div>
 </template>
@@ -52,9 +52,10 @@ export default {
     userAccountQuestStatistics() {
       return [...Array(50).keys()].reduce((accumulater, userId) => {
         accumulater[userId] = {}
-        for (let questId of [...Array(20).keys()]) {
+        for (let questId of [...Array(50).keys()]) {
           accumulater[userId][questId] = {}
           accumulater[userId][questId].progress_rate = Math.floor( Math.random() * 101 )
+          accumulater[userId][questId].updated_at = '2019-07-01'
         }
         return accumulater
       }, {})
@@ -62,10 +63,10 @@ export default {
   },
   methods: {
     userAccount() {
-      return [...Array(50).keys()].map(e => ({ id: e, name: `user${e}`}))
+      return [...Array(20).keys()].map(e => ({ id: e, name: `user${e}`}))
     },
     quests() {
-      return [...Array(20).keys()].map(e => ({ id: e, name: `Q${e}`}))
+      return [...Array(50).keys()].map(e => ({ id: e, name: `Q${e}`}))
     }
   }
 }
