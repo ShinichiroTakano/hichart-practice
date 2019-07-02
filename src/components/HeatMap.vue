@@ -61,11 +61,26 @@ export default {
       xAxis: {
         categories: quests.map(e => e.name),
         title: '',
-        opposite: true
+        opposite: true,
+        labels: {
+          formatter() {
+            console.log('this', this)
+            return `<a href="categoryLinks[this.value]">${this.value}</a>`;
+          },
+          useHTML: true
+        }
       },
       yAxis: {
         categories: users.map(e => e.name),
-        title: ''
+        title: '',
+        labels: {
+          formatter() {
+            console.log('this', this)
+            const pos = this.pos
+            return `<a href="categoryLinks[this.value]">${this.value}</a>`;
+          },
+          useHTML: true
+        }
       },
       colorAxis: {
         minColor: '#FFFFFF',
