@@ -64,7 +64,6 @@ export default {
         opposite: true,
         labels: {
           formatter() {
-            console.log('this', this)
             return `<a href="categoryLinks[this.value]">${this.value}</a>`;
           },
           useHTML: true
@@ -75,7 +74,6 @@ export default {
         title: '',
         labels: {
           formatter() {
-            console.log('this', this)
             const pos = this.pos
             return `<a href="categoryLinks[this.value]">${this.value}</a>`;
           },

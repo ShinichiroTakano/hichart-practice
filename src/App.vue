@@ -7,32 +7,38 @@
       :user-account-quest-statistics="userAccountQuestStatistics"
       :user-accounts="userAccount()"
       :quests="quests()" />
-  <UserProcessStatus 
-    :users="[
-      {
-        id: 1,
-        name: 'aaa'
-      },
-      {
-        id: 2,
-        name: 'bbb'
-      },
-      {
-        id: 3,
-        name: 'cccc'
-      }
-    ]"
-    :questCounts="{
-      notStarted: [0, 1, 13],
-      firstQuarter: [3, 3, 2],
-      secondQuarter: [2, 3, 2],
-      thirdQuarter: [2, 1, 2],
-      fourthQuarter: [1, 1, 0],
-      lastMission: [7, 8, 1],
-      clear: [5, 3, 0]
-    }"
-  />
-    
+
+    <user-account-quest-heat-map
+      :user-account-quest-statistics="userAccountQuestStatistics"
+      :users="userAccount()"
+      :quests="quests()" />
+
+    <UserProcessStatus 
+      :users="[
+        {
+          id: 1,
+          name: 'aaa'
+        },
+        {
+          id: 2,
+          name: 'bbb'
+        },
+        {
+          id: 3,
+          name: 'cccc'
+        }
+      ]"
+      :questCounts="{
+        notStarted: [0, 1, 13],
+        firstQuarter: [3, 3, 2],
+        secondQuarter: [2, 3, 2],
+        thirdQuarter: [2, 1, 2],
+        fourthQuarter: [1, 1, 0],
+        lastMission: [7, 8, 1],
+        clear: [5, 3, 0]
+      }"
+    />
+    </user-account-quest-heat-map>
   </div>
 </template>
 
@@ -40,13 +46,15 @@
 import BusinessTypesSelect from './components/BusinessTypesSelect.vue'
 import HeatMap from './components/HeatMap.vue'
 import UserProcessStatus from './components/UserProcessStatus.vue'
+import UserAccountQuestHeatMap from './components/UserAccountQuestHeatMap.vue'
 
 export default {
   name: 'app',
   components: {
     BusinessTypesSelect,
     HeatMap,
-    UserProcessStatus
+    UserProcessStatus,
+    UserAccountQuestHeatMap
   },
   computed: {
     userAccountQuestStatistics() {
