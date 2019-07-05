@@ -219,9 +219,9 @@ export default {
       // console.log('heatMapUsers', "---------------")
       // console.table(heatMapUsers)
       // console.log("---------------")
-      // console.log('heatMapCells', "---------------")
-      // console.table(heatMapCells)
-      // console.log("---------------")
+      console.log('heatMapCells', "---------------")
+      console.table(heatMapCells)
+      console.log("---------------")
       return [heatMapCells, heatMapUsers]
     }
   },
