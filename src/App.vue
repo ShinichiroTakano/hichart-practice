@@ -58,9 +58,9 @@ export default {
   },
   computed: {
     userAccountQuestStatistics() {
-      return [...Array(50).keys()].reduce((accumulater, userId) => {
+      return [...Array(20).keys()].reduce((accumulater, userId) => {
         accumulater[userId] = {}
-        for (let questId of [...Array(50).keys()]) {
+        for (let questId of [...Array(10).keys()]) {
           accumulater[userId][questId] = {}
           accumulater[userId][questId].progress_rate = Math.floor( Math.random() * 101 )
           accumulater[userId][questId].updated_at = '2019-07-01'
@@ -71,10 +71,10 @@ export default {
   },
   methods: {
     userAccount() {
-      return [...Array(20).keys()].map(e => ({ id: e, name: `user${e}`}))
+      return [...Array(10).keys()].map(e => ({ id: e, name: `user${e}`}))
     },
     quests() {
-      return [...Array(50).keys()].map(e => ({ id: e, name: `Q${e}`}))
+      return [...Array(10).keys()].map(e => ({ id: e, name: `Q${e}`}))
     }
   }
 }
