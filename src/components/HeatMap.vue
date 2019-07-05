@@ -58,13 +58,14 @@ export default {
         'third-quarter': 3,
         'fourth-quarter': 4
       },
-      excludingList: [
-        { min: 0, max: 0, isExcluded: false },
-        { min: 1, max: 25, isExcluded: false },
-        { min: 26, max: 50, isExcluded: false },
-        { min: 51, max: 75, isExcluded: false },
-        { min: 76, max: 100, isExcluded: false }
-      ]
+      excludingRangeMaster: [
+        { id: 0, min: 0, max: 0 },
+        { id: 1, min: 1, max: 25 },
+        { id: 2, min: 26, max: 50 },
+        { id: 3, min: 51, max: 75 },
+        { id: 4, min: 76, max: 100 }
+      ],
+      excludingRangeList: []
     } 
   },
   watch: {
@@ -90,24 +91,24 @@ export default {
         ↓
         selectedStatusesからi番目の要素が削除される。
         ↓
-        excludingList[i]のisExcludedをtrue
+        excludingRangeListにexcludingRangeMaster[i]を挿入
       */
       /*
         ステータスが選択される
         ↓
         selectedStatusesにi番目の要素が追加される。
         ↓
-        excludingList[i]のisExcludedをfalse
+        excludingRangeListからid=iのオブジェクトがexcludingRangeListから削除
       */
       const i = this.indexMap[status]
       if (this.selectedStatuses.includes(status)) {
         // ステータスが非選択になる
         this.selectedStatuses.splice(i, 1, 'notSelected')
-        this.excludingList[i].isExcluded = true
+        this.excludingRangeList.push(this.excludingRangeMaster[i])
       } else {
         // ステータスが選択される
         this.selectedStatuses[i] = status
-        this.excludingList.isExcluded = false
+        this.excludingRangeList = this.excludingRangeList.filter(e => e.id !== i)
       }
     },
     createHeatMap() {
@@ -181,25 +182,23 @@ export default {
       const heatMapUsersLength = heatMapUsers.length
       for (let i = heatMapUsersLength - 1; i >= 0; i--) {
         const user = heatMapUsers[i]
-        console.log('i', i)
-        console.log('user', user)
+        // console.log('i', i)
+        // console.log('user', user)
         questLoop: for (let j = 0; j < this.quests.length; j++) {
           const quest = this.quests[j]
           const progressRate = this.userAccountQuestStatistics[user.id][quest.id].progress_rate
-          console.log('j', j)
-          console.log('quest', quest)
-          console.log('progressRate', progressRate)
+          // console.log('j', j)
+          // console.log('quest', quest)
+          // console.log('progressRate', progressRate)
 
-          for (let judger of this.excludingList) {
-            if (judger.isExcluded) {
-              if (judger.min <= progressRate && progressRate <= judger.max) {
-                heatMapUsers.splice(i, 1)
-                while(j >= 0) {
-                  heatMapCells.pop()
-                  j--
-                }
-                break questLoop
+          for (let range of this.excludingRangeList) {
+            if (range.min <= progressRate && progressRate <= range.max) {
+              heatMapUsers.splice(i, 1)
+              while(j >= 0) {
+                heatMapCells.pop()
+                j--
               }
+              break questLoop
             }
           }
           const cell = [j, i, progressRate]
@@ -209,20 +208,20 @@ export default {
       for (let i = 0; i < heatMapUsers.length; i++) {
         const start = this.quests.length * i
         const end = this.quests.length * (i + 1)
-        console.log('start', start)
-        console.log('end', end)
+        // console.log('start', start)
+        // console.log('end', end)
         const row = heatMapCells.slice(start, end)
-        console.log('row', row)
+        // console.log('row', row)
         for (const heatMapCell of row) {
           heatMapCell[1] = i
         }
       }
-      console.log('heatMapUsers', "---------------")
-      console.table(heatMapUsers)
-      console.log("---------------")
-      console.log('heatMapCells', "---------------")
-      console.table(heatMapCells)
-      console.log("---------------")
+      // console.log('heatMapUsers', "---------------")
+      // console.table(heatMapUsers)
+      // console.log("---------------")
+      // console.log('heatMapCells', "---------------")
+      // console.table(heatMapCells)
+      // console.log("---------------")
       return [heatMapCells, heatMapUsers]
     }
   },
