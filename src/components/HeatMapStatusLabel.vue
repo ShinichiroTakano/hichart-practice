@@ -11,9 +11,6 @@
   </span>
 </template>
 <script>
-var max_limit = 100 // 選ばれているステータスの最大値により変化(watchで変更)
-var minimum = 0 // 選ばれているステータスの最小値により変化(watchで変更)
-
 export default {
   name: 'heta-map-status-label',
   props: {

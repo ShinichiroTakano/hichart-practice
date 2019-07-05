@@ -8,12 +8,11 @@
       :user-accounts="userAccount()"
       :quests="quests()" />
 
-    <user-account-quest-heat-map
+    <!-- <user-account-quest-heat-map
       :user-account-quest-statistics="userAccountQuestStatistics"
       :users="userAccount()"
-      :quests="quests()" />
-
-    <UserProcessStatus 
+      :quests="quests()" /> -->
+    <!-- <UserProcessStatus 
       :users="[
         {
           id: 1,
@@ -37,8 +36,7 @@
         lastMission: [7, 8, 1],
         clear: [5, 3, 0]
       }"
-    />
-    </user-account-quest-heat-map>
+    /> -->
   </div>
 </template>
 
@@ -58,7 +56,7 @@ export default {
   },
   computed: {
     userAccountQuestStatistics() {
-      return [...Array(20).keys()].reduce((accumulater, userId) => {
+      return [...Array(10).keys()].reduce((accumulater, userId) => {
         accumulater[userId] = {}
         for (let questId of [...Array(10).keys()]) {
           accumulater[userId][questId] = {}
