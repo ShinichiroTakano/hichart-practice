@@ -34,7 +34,7 @@ export default {
   },
   computed: {
     notSelectedLabel() {
-      if (this.selectedStatuses.includes(this.statusId)) {
+      if (this.selectedStatuses.some(status => this.statusId === status.id)) {
         return {}
       } else {
         return { color: '#cccccc' }

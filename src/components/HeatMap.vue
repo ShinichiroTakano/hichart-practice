@@ -1,17 +1,15 @@
 <template>
   <div>
     <div class="status-legend">
-      <heat-map-status-label statusId="not-started" statusName="進捗なし" @change-status="changeStatus" :selectedStatuses ="selectedStatuses" />
-      <heat-map-status-label statusId="first-quarter" statusName="1~25%" @change-status="changeStatus" :selectedStatuses ="selectedStatuses" />
-      <heat-map-status-label statusId="second-quarter" statusName="26~50%" @change-status="changeStatus" :selectedStatuses ="selectedStatuses" />
-      <heat-map-status-label statusId="third-quarter" statusName="51~75%" @change-status="changeStatus" :selectedStatuses ="selectedStatuses" />
-      <heat-map-status-label statusId="fourth-quarter" statusName="76~100%" @change-status="changeStatus" :selectedStatuses ="selectedStatuses" />
-      <!-- <span id="last-mission"><span class="status-circle"></span><span class="status-string">LastMission中</span></span>
-      <span id="clear"><span class="status-circle"></span><span class="status-string">Questクリア</span></span> -->
+      <heat-map-status-label
+        v-for="status of statusMaster"
+        :key="status.id"
+        :statusId="status.id"
+        :statusName="status.name"
+        @change-status="changeStatus"
+        :selectedStatuses ="selectedStatuses" />
     </div>
-    <div id="heat-map-card">
-      <div id="progress-heat-map"></div>
-    </div>
+    <div id="progress-heat-map"></div>
   </div>
 </template>
 <script>
@@ -45,91 +43,71 @@ export default {
   data() {
     return {
       highChart: null,
-      selectedStatuses: ['not-started', 'first-quarter', 'second-quarter', 'third-quarter', 'fourth-quarter'],
-      /*
-        selectedStatusesはindexに入る文字列が固定されています(indexMap)。
-        選択されていない時は'notSelected'を入れるようにしています。
-        上記のようにした理由は、index * 25で進捗率を出せるようにするためです。
-      */
-      indexMap: {
-        'not-started': 0,
-        'first-quarter': 1,
-        'second-quarter': 2,
-        'third-quarter': 3,
-        'fourth-quarter': 4
-      },
-      excludingRangeMaster: [
-        { id: 0, min: 0, max: 0 },
-        { id: 1, min: 1, max: 25 },
-        { id: 2, min: 26, max: 50 },
-        { id: 3, min: 51, max: 75 },
-        { id: 4, min: 76, max: 100 }
+      statusMaster: [
+        {id: 'not-started', name: '進捗なし', min: 0, max: 0 },
+        {id: 'first-quarter', name: '1~25%', min: 1, max: 25 },
+        {id: 'second-quarter', name: '26~50%', min: 26, max: 50 },
+        {id: 'third-quarter', name: '51~75%', min: 51, max: 75 },
+        {id: 'fourth-quarter', name: '76~100%', min: 76, max: 100 }
       ],
+      selectedStatuses: [],
       excludingRangeList: []
     } 
   },
   watch: {
     selectedStatuses() {
-      // this.highChart.destroy()
-      const heatMapElement = document.getElementById('progress-heat-map')
-      // while (heatMapElement.firstChild) {
-      //   heatMapElement.removeChild(heatMapElement.firstChild)
-      // }
-      const heatMapCard = document.getElementById('heat-map-card')
-      heatMapCard.removeChild(heatMapElement);
-      const div = document.createElement('div')
-      div.setAttribute('id', 'progress-heat-map')
-      heatMapCard.appendChild(div)
-      this.highChart. redraw()
-      this.highChart = this.createHeatMap()
+      this.highChart.destroy()
+      this.highChart = this.createHeatMap(this.selectUsers())
     }
   },
   methods: {
-    changeStatus(status) {
-      /*
-        ステータスが非選択になる
-        ↓
-        selectedStatusesからi番目の要素が削除される。
-        ↓
-        excludingRangeListにexcludingRangeMaster[i]を挿入
-      */
-      /*
-        ステータスが選択される
-        ↓
-        selectedStatusesにi番目の要素が追加される。
-        ↓
-        excludingRangeListからid=iのオブジェクトがexcludingRangeListから削除
-      */
-      const i = this.indexMap[status]
-      if (this.selectedStatuses.includes(status)) {
+    changeStatus(statusId) {
+     const clickedStatus = this.statusMaster.find(status => status.id === statusId)
+      if (this.selectedStatuses.some(status => statusId === status.id)) {
         // ステータスが非選択になる
-        this.selectedStatuses.splice(i, 1, 'notSelected')
-        this.excludingRangeList.push(this.excludingRangeMaster[i])
+        this.selectedStatuses = this.selectedStatuses.filter(status => status.id !== statusId)
+        this.excludingRangeList.push(clickedStatus)
       } else {
         // ステータスが選択される
-        this.selectedStatuses[i] = status
-        this.excludingRangeList = this.excludingRangeList.filter(e => e.id !== i)
+        this.selectedStatuses.push(clickedStatus)
+        this.excludingRangeList = this.excludingRangeList.filter(e => e.id !== statusId)
       }
     },
-    createHeatMap() {
-      const [ heatMapCells, heatMapUsers ] = this.createHeatMapData()
+    selectUsers() {
+      const excludedUserIds = []
+      for(const excludingRange of this.excludingRangeList) {
+        for(const user of this.userAccounts) {
+          for(const quest of this.quests) {
+            const progressRate = this.userAccountQuestStatistics[user.id][quest.id].progress_rate
+            if (excludingRange.min <= progressRate && progressRate <= excludingRange.max) {
+              excludedUserIds.push(user.id)
+              break
+            }
+          }
+        }
+      }
+      const selectedUsers = this.userAccounts.filter(user => !excludedUserIds.includes(user.id))
+      console.log('selectedUsers', selectedUsers);
+      return selectedUsers
+    },
+    createHeatMap(users) {
+      const cells = this.createCells(users)
       // hichartに渡すオブジェクトの中の関数ではthisの参照がvueインスタンスでなくchartインスタンスになるので、別変数に代入
       const quests = this.quests
-      const users = heatMapUsers
-      console.log('users', users)
       const userAccountQuestStatistics = this.userAccountQuestStatistics
       const cellLength = (window.innerWidth * 0.8 / 20)
-      const minHeight = cellLength * users.length
-      const minWidth = cellLength * quests.length
+      console.log('cellLength', cellLength);
+      const minHeight = cellLength * users.length + 50
+      const minWidth = cellLength * quests.length + 50
       return Highcharts.chart('progress-heat-map', {
         chart: {
           type: 'heatmap',
           scrollablePlotArea: {
-            // minHeight,
-            // minWidth
+            minHeight,
+            minWidth
           },
-          width: minWidth * 0.9,
-          height: minHeight * 0.9
+          width: minWidth * 0.99999,
+          height: minHeight * 0.99999
         },
         title: {
           text: ''
@@ -162,8 +140,7 @@ export default {
           gridLineWidth: 0
         },
         series: [{
-          borderWidth: 1,
-          data: heatMapCells
+          data: cells
         }],
         tooltip: {
           formatter() {
@@ -171,62 +148,41 @@ export default {
                     <b>最終更新日</b> : ${userAccountQuestStatistics[this.point.x][this.point.y].updated_at}`
           }
         },
+        legend: {
+          enabled: false
+        },
         credits: {
           enabled: false
         }
       })
     },
-    createHeatMapData() {
-      const heatMapCells = []
-      const heatMapUsers = JSON.parse(JSON.stringify(this.userAccounts))
-      const heatMapUsersLength = heatMapUsers.length
-      for (let i = heatMapUsersLength - 1; i >= 0; i--) {
-        const user = heatMapUsers[i]
-        // console.log('i', i)
-        // console.log('user', user)
-        questLoop: for (let j = 0; j < this.quests.length; j++) {
+    createCells(users) {
+      const cells = []
+      const usersLength = users.length
+      const questLength = this.quests.length
+      for (let i = 0; i < usersLength; i++) {
+        const user = users[i]
+        for (let j = 0; j < questLength; j++) {
           const quest = this.quests[j]
           const progressRate = this.userAccountQuestStatistics[user.id][quest.id].progress_rate
-          // console.log('j', j)
-          // console.log('quest', quest)
-          // console.log('progressRate', progressRate)
-
-          for (let range of this.excludingRangeList) {
-            if (range.min <= progressRate && progressRate <= range.max) {
-              heatMapUsers.splice(i, 1)
-              while(j >= 0) {
-                heatMapCells.pop()
-                j--
-              }
-              break questLoop
-            }
-          }
           const cell = [j, i, progressRate]
-          heatMapCells.unshift(cell)
+          cells.push(cell)
         }
       }
-      for (let i = 0; i < heatMapUsers.length; i++) {
-        const start = this.quests.length * i
-        const end = this.quests.length * (i + 1)
-        // console.log('start', start)
-        // console.log('end', end)
-        const row = heatMapCells.slice(start, end)
-        // console.log('row', row)
-        for (const heatMapCell of row) {
-          heatMapCell[1] = i
-        }
-      }
-      // console.log('heatMapUsers', "---------------")
-      // console.table(heatMapUsers)
+      // console.log('users', "---------------")
+      // console.table(users)
       // console.log("---------------")
-      console.log('heatMapCells', "---------------")
-      console.table(heatMapCells)
-      console.log("---------------")
-      return [heatMapCells, heatMapUsers]
+      // console.log('cells', "---------------")
+      // console.table(cells)
+      // console.log("---------------")
+      return cells
     }
   },
+  created () {
+    this.selectedStatuses = JSON.parse(JSON.stringify(this.statusMaster))
+  },
   mounted () {
-    this.highChart = this.createHeatMap('progress-heat-map')
+    this.highChart = this.createHeatMap(this.userAccounts)
   }
 }
 </script>
@@ -234,7 +190,6 @@ export default {
 .status-legend {
   display: flex;
   align-items: center;
-
 }
 
 

@@ -58,7 +58,7 @@ export default {
     userAccountQuestStatistics() {
       return [...Array(10).keys()].reduce((accumulater, userId) => {
         accumulater[userId] = {}
-        for (let questId of [...Array(10).keys()]) {
+        for (let questId of [...Array(30).keys()]) {
           accumulater[userId][questId] = {}
           accumulater[userId][questId].progress_rate = Math.floor( Math.random() * 101 )
           accumulater[userId][questId].updated_at = '2019-07-01'
