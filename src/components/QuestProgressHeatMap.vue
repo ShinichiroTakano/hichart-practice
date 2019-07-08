@@ -6,6 +6,7 @@
         :key="status.id"
         :statusId="status.id"
         :statusName="status.name"
+        :statusColor="status.color"
         @change-status="changeStatus"
         :selectedStatuses ="selectedStatuses" />
     </div>
@@ -22,7 +23,7 @@ addHeatmapModule(Highcharts);
 addTreemapModule(Highcharts);
 
 export default {
-  name: 'progress-heat-map',
+  name: 'quest-progress-heat-map',
   components: {
     HeatMapStatusLabel
   },
@@ -41,21 +42,22 @@ export default {
     }    
   },
   data() {
+    const statusMaster = [
+      {id: 'not-started', name: '進捗なし', min: 0, max: 0, color: 'white' },
+      {id: 'first-quarter', name: '1~25%', min: 1, max: 25, color: 'rgb(222,237,250)' },
+      {id: 'second-quarter', name: '26~50%', min: 26, max: 50, color: 'rgb(190,218,246)' },
+      {id: 'third-quarter', name: '51~75%', min: 51, max: 75, color: 'rgb(142,191,239)' },
+      {id: 'fourth-quarter', name: '76~99%', min: 76, max: 99, color: 'rgb(125,182,236)' },
+      {id: 'quest-clear', name: 'Questクリア', min: 100, max: 100, color: 'rgb(46,13,239)' }
+    ]
     return {
       highChart: null,
-      statusMaster: [
-        {id: 'not-started', name: '進捗なし', min: 0, max: 0 },
-        {id: 'first-quarter', name: '1~25%', min: 1, max: 25 },
-        {id: 'second-quarter', name: '26~50%', min: 26, max: 50 },
-        {id: 'third-quarter', name: '51~75%', min: 51, max: 75 },
-        {id: 'fourth-quarter', name: '76~100%', min: 76, max: 100 }
-      ],
-      selectedStatuses: [],
-      excludingRangeList: []
+      statusMaster: [...statusMaster],
+      selectedStatuses: [...statusMaster]
     } 
   },
   watch: {
-    selectedStatuses() {
+    selectedStatuses(newValue, oldValue) {
       this.highChart.destroy()
       this.highChart = this.createHeatMap(this.selectUsers())
     }
@@ -66,37 +68,45 @@ export default {
       if (this.selectedStatuses.some(status => statusId === status.id)) {
         // ステータスが非選択になる
         this.selectedStatuses = this.selectedStatuses.filter(status => status.id !== statusId)
-        this.excludingRangeList.push(clickedStatus)
       } else {
         // ステータスが選択される
         this.selectedStatuses.push(clickedStatus)
-        this.excludingRangeList = this.excludingRangeList.filter(e => e.id !== statusId)
       }
     },
     selectUsers() {
-      const excludedUserIds = []
-      for(const excludingRange of this.excludingRangeList) {
-        for(const user of this.userAccounts) {
+      const selectedUsers = []
+      const checkedUsers = JSON.parse(JSON.stringify(this.userAccounts))
+      for(const status of this.selectedStatuses) {
+        const checkedUsersLen = checkedUsers.length
+        userLoop: for(let i = checkedUsersLen - 1; i >= 0; i--) {
+          const user = checkedUsers[i]
           for(const quest of this.quests) {
             const progressRate = this.userAccountQuestStatistics[user.id][quest.id].progress_rate
-            if (excludingRange.min <= progressRate && progressRate <= excludingRange.max) {
-              excludedUserIds.push(user.id)
-              break
+            if (status.min <= progressRate && progressRate <= status.max) {
+              selectedUsers.unshift(user)
+              checkedUsers.splice(i, 1)
+              break;
             }
           }
         }
       }
-      const selectedUsers = this.userAccounts.filter(user => !excludedUserIds.includes(user.id))
-      console.log('selectedUsers', selectedUsers);
-      return selectedUsers
+      console.log('selectedUsers', selectedUsers)
+      return selectedUsers.sort((a, b) => {
+        if (a.id > b.id) {
+          return 1
+        } else if (a.id < b.id) {
+          return -1
+        }
+        return 0
+      })
     },
     createHeatMap(users) {
       const cells = this.createCells(users)
       // hichartに渡すオブジェクトの中の関数ではthisの参照がvueインスタンスでなくchartインスタンスになるので、別変数に代入
       const quests = this.quests
       const userAccountQuestStatistics = this.userAccountQuestStatistics
-      const cellLength = (window.innerWidth * 0.8 / 20)
-      console.log('cellLength', cellLength);
+      const screenQuestCount = quests.length > 10 ? 20 : 10
+      const cellLength = (window.innerWidth * 0.7 / screenQuestCount)
       const minHeight = cellLength * users.length + 50
       const minWidth = cellLength * quests.length + 50
       return Highcharts.chart('progress-heat-map', {
@@ -108,6 +118,11 @@ export default {
           },
           width: minWidth * 0.99999,
           height: minHeight * 0.99999
+        },
+        plotOptions: {
+          heatmap: {
+            turboThreshold: 2000
+          }
         },
         title: {
           text: ''
@@ -140,11 +155,12 @@ export default {
           gridLineWidth: 0
         },
         series: [{
+          borderWidth: 1,
           data: cells
         }],
         tooltip: {
           formatter() {
-            return `<b>進捗詳細</b> : ${this.point.value}%<br>
+            return `<b>進捗詳細</b> : ${this.point.z}%<br>
                     <b>最終更新日</b> : ${userAccountQuestStatistics[this.point.x][this.point.y].updated_at}`
           }
         },
@@ -165,21 +181,21 @@ export default {
         for (let j = 0; j < questLength; j++) {
           const quest = this.quests[j]
           const progressRate = this.userAccountQuestStatistics[user.id][quest.id].progress_rate
-          const cell = [j, i, progressRate]
+          // const cell = [j, i, progressRate]
+          let color;
+          for (let status of this.statusMaster) {
+            if (status.min <= progressRate && progressRate <= status.max) {
+              color = status.color
+              break
+            }
+          }
+          const cell = { x: j, y: i, z: progressRate, color }
           cells.push(cell)
         }
       }
-      // console.log('users', "---------------")
-      // console.table(users)
-      // console.log("---------------")
-      // console.log('cells', "---------------")
-      // console.table(cells)
-      // console.log("---------------")
+      console.table(cells)
       return cells
     }
-  },
-  created () {
-    this.selectedStatuses = JSON.parse(JSON.stringify(this.statusMaster))
   },
   mounted () {
     this.highChart = this.createHeatMap(this.userAccounts)
@@ -191,7 +207,5 @@ export default {
   display: flex;
   align-items: center;
 }
-
-
 </style>
 

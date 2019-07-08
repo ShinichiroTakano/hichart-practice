@@ -3,10 +3,7 @@
     <!-- <BusinessTypesSelect
       :businessTypes="[{ id: 1, name: 'aaaa' }, { id: 2, name: 'bbbb' }, { id: 3, name: 'cccc' }]"
       :selectedBusinessTypes="[{ id: 1, name: 'aaaa' }]"/> -->
-    <HeatMap
-      :user-account-quest-statistics="userAccountQuestStatistics"
-      :user-accounts="userAccount()"
-      :quests="quests()" />
+    <heat-maps />
 
     <!-- <user-account-quest-heat-map
       :user-account-quest-statistics="userAccountQuestStatistics"
@@ -42,38 +39,17 @@
 
 <script>
 import BusinessTypesSelect from './components/BusinessTypesSelect.vue'
-import HeatMap from './components/HeatMap.vue'
 import UserProcessStatus from './components/UserProcessStatus.vue'
 import UserAccountQuestHeatMap from './components/UserAccountQuestHeatMap.vue'
+import HeatMaps from './components/HeatMaps.vue'
 
 export default {
   name: 'app',
   components: {
     BusinessTypesSelect,
-    HeatMap,
+    HeatMaps,
     UserProcessStatus,
     UserAccountQuestHeatMap
-  },
-  computed: {
-    userAccountQuestStatistics() {
-      return [...Array(10).keys()].reduce((accumulater, userId) => {
-        accumulater[userId] = {}
-        for (let questId of [...Array(30).keys()]) {
-          accumulater[userId][questId] = {}
-          accumulater[userId][questId].progress_rate = Math.floor( Math.random() * 101 )
-          accumulater[userId][questId].updated_at = '2019-07-01'
-        }
-        return accumulater
-      }, {})
-    },
-  },
-  methods: {
-    userAccount() {
-      return [...Array(10).keys()].map(e => ({ id: e, name: `user${e}`}))
-    },
-    quests() {
-      return [...Array(10).keys()].map(e => ({ id: e, name: `Q${e}`}))
-    }
   }
 }
 </script>
