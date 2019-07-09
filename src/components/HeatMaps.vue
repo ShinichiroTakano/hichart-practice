@@ -1,5 +1,5 @@
 <template>
-  <div class="heat-maps-card">
+  <div class="heat-maps-card" style="position: absolute;">
     <heat-map-tabs
       :selectedTab="selectedTab"
       :tabs="tabs"
@@ -28,7 +28,9 @@ export default {
       tabs: [
         {id: 'QUEST_PROGRESS', name: 'Quest進捗率'},
         {id: 'LAST_MISSION', name: 'LastMission状況'}
-      ]
+      ],
+      userName: 'useruseruseruseruser\nuseruseruseruseruseruseruser',
+      questName: 'questquestquestquest\nquestquestquestquestquestquest'
     }
   },
   components: {
@@ -38,10 +40,10 @@ export default {
   },
   computed: {
     userAccounts() {
-      return [...Array(5).keys()].map(e => ({ id: e, name: `user${e}`}))
+      return [...Array(20).keys()].map(e => ({ id: e, name: `${this.userName}${e}`}))
     },
     quests() {
-      return [...Array(5).keys()].map(e => ({ id: e, name: `Q${e}`}))
+      return [...Array(20).keys()].map(e => ({ id: e, name: `${this.questName}${e}` }))
     },
     userAccountQuestStatistics() {
       return this.userAccounts.reduce((accumulater, user) => {
@@ -66,7 +68,7 @@ export default {
 </script>
 <style>
 .heat-maps-card {
-  padding: 20px;
+  /* padding: 20px; */
 }
 </style>
 

@@ -15,6 +15,7 @@
     "apexcharts": "^3.8.1",
     "core-js": "^2.6.5",
     "highcharts": "^7.1.2",
+    "highcharts-custom-events": "^3.0.1",
     "vue": "^2.6.10",
     "vue-apexcharts": "^1.4.0",
     "vuetify": "^1.5.14",

@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div style="position: relative;">
     <div class="status-legend">
       <heat-map-status-label
         v-for="status of statusMaster"
@@ -11,16 +11,22 @@
         :selectedStatuses ="selectedStatuses" />
     </div>
     <div id="progress-heat-map"></div>
+    <span
+      :style="tooltipPosition"
+      class="haetmap-label-tooltip"
+      v-show="tooltip.isVisible">{{ tooltip.text }}</span>
   </div>
 </template>
 <script>
-import Highcharts from 'highcharts';
+import Highcharts, { createElement } from 'highcharts';
 import addHeatmapModule from 'highcharts/modules/heatmap';
 import addTreemapModule from 'highcharts/modules/treemap';
 import HeatMapStatusLabel from './HeatMapStatusLabel.vue';
+import HighchartsCustomEvents from "highcharts-custom-events";
 
 addHeatmapModule(Highcharts);
 addTreemapModule(Highcharts);
+HighchartsCustomEvents(Highcharts);
 
 export default {
   name: 'quest-progress-heat-map',
@@ -53,8 +59,20 @@ export default {
     return {
       highChart: null,
       statusMaster: [...statusMaster],
-      selectedStatuses: [...statusMaster]
+      selectedStatuses: [...statusMaster],
+      tooltip: {
+        x: null,
+        y: null,
+        text: '',
+        isVisible: false
+      }
     } 
+  },
+  computed: {
+    tooltipPosition() {
+      const {x, y} = this.tooltip
+      return {top: `${y - 20}px`, left: `${x}px`}
+    }
   },
   watch: {
     selectedStatuses(newValue, oldValue) {
@@ -78,7 +96,7 @@ export default {
       const checkedUsers = JSON.parse(JSON.stringify(this.userAccounts))
       for(const status of this.selectedStatuses) {
         const checkedUsersLen = checkedUsers.length
-        userLoop: for(let i = checkedUsersLen - 1; i >= 0; i--) {
+        for(let i = checkedUsersLen - 1; i >= 0; i--) {
           const user = checkedUsers[i]
           for(const quest of this.quests) {
             const progressRate = this.userAccountQuestStatistics[user.id][quest.id].progress_rate
@@ -105,10 +123,11 @@ export default {
       // hichartに渡すオブジェクトの中の関数ではthisの参照がvueインスタンスでなくchartインスタンスになるので、別変数に代入
       const quests = this.quests
       const userAccountQuestStatistics = this.userAccountQuestStatistics
-      const screenQuestCount = quests.length > 10 ? 20 : 10
-      const cellLength = (window.innerWidth * 0.7 / screenQuestCount)
+      const screenQuestCount = 12
+      const cellLength = (window.innerWidth / screenQuestCount)
       const minHeight = cellLength * users.length + 50
       const minWidth = cellLength * quests.length + 50
+      const vueInstance = this
       return Highcharts.chart('progress-heat-map', {
         chart: {
           type: 'heatmap',
@@ -132,21 +151,70 @@ export default {
           title: '',
           opposite: true,
           labels: {
+            useHTML: true,
+            style:{
+                width: `${cellLength * 2}px`,
+                whiteSpace:'normal',
+                overflow: 'scroll'
+            },
+            autoRotation: false,
             formatter() {
               return `<a href="categoryLinks[this.value]">${this.value}</a>`;
             },
-            useHTML: true
+            events: {
+              mouseover: (event => {
+                console.log(event)
+                this.tooltip = {
+                  x: event.clientX,
+                  y: event.clientY,
+                  isVisible: true,
+                  text: event.target.innerText
+                }
+              }).bind(vueInstance),
+              mouseout: ( event => {
+                this.tooltip = {
+                  x: null,
+                  y: null,
+                  isVisible: false,
+                  text: null
+                }
+              }).bind(vueInstance)
+            }
           }
         },
         yAxis: {
           categories: users.map(e => e.name),
           title: '',
           labels: {
+            useHTML: true,
+            style:{
+                width: `${cellLength}px`,
+                whiteSpace:'normal',
+                textOverflow: 'ellipsis'
+            },
             formatter() {
               const pos = this.pos
               return `<a href="categoryLinks[this.value]">${this.value}</a>`;
             },
-            useHTML: true
+            events: {
+              mouseover: (event => {
+                console.log(event)
+                this.tooltip = {
+                  x: event.clientX,
+                  y: event.clientY,
+                  isVisible: true,
+                  text: event.target.innerText
+                }
+              }).bind(vueInstance),
+              mouseout: ( event => {
+                this.tooltip = {
+                  x: null,
+                  y: null,
+                  isVisible: false,
+                  text: null
+                }
+              }).bind(vueInstance)
+            }
           }
         },
         colorAxis: {
@@ -206,6 +274,14 @@ export default {
 .status-legend {
   display: flex;
   align-items: center;
+}
+.haetmap-label-tooltip {
+  position: absolute;
+  z-index: 1000;
+  padding: 5px 10px;
+  background-color: rgb(248, 248, 248);
+  border: 1px solid rgb(166, 166, 166);
+  border-radius: 5px;
 }
 </style>
 
