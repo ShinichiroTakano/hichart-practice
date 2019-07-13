@@ -15,6 +15,8 @@
     "apexcharts": "^3.8.1",
     "core-js": "^2.6.5",
     "highcharts": "^7.1.2",
+    "sass": "^1.22.4",
+    "sass-loader": "^7.1.0",
     "vue": "^2.6.10",
     "vue-apexcharts": "^1.4.0",
     "vuetify": "^1.5.14",
