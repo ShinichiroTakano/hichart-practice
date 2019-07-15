@@ -1,11 +1,11 @@
 <template>
-  <span>
+  <span style="margin-top: 40px;">
     <span
       :id="statusId"
       class="status-label"
       @click="emitChangeStatus(statusId)"
-      :style="notSelectedLabel">
-      <span class="status-circle"></span>
+      :style="notSelected">
+      <span class="status-circle" :style="circleColor"></span>
       <span class="status-string">{{statusName}}</span>
     </span>
   </span>
@@ -25,6 +25,10 @@ export default {
     statusName: {
       name: String,
       required: true
+    },
+    statusColor: {
+      name: String,
+      required: true
     }
   },
   data() {
@@ -33,7 +37,10 @@ export default {
     }
   },
   computed: {
-    notSelectedLabel() {
+    circleColor() {
+      return { 'background-color': this.statusColor }
+    },
+    notSelected() {
       if (this.selectedStatuses.some(status => this.statusId === status.id)) {
         return {}
       } else {
@@ -51,38 +58,24 @@ export default {
 </script>
 <style>
   .status-label {
+    margin-top: 30px;
     cursor: pointer;
   }
+  #not-started > .status-circle {
+    background-color: white;
+    border: 1px solid black;
+  }
   .status-circle {
-    margin-left: 8px;
+    margin-left: 12px;
+    margin-right: 5px;
     border-radius: 50%;
-    width: 10px;
-    height: 10px;
+    width: 15px;
+    height: 15px;
     display: inline-block
   }
   .status-string {
     margin-left: 8px;
-    font-size: 12px;
+    font-size: 15px;
     font-weight: bold;
-  }
-
-  #not-started > .status-circle {
-      background-color: white;
-      border: 1px solid black;
-  }
-  #first-quarter > .status-circle {
-    background-color: rgb(222,237,250);
-  }
-  #second-quarter > .status-circle {
-    background-color: rgb(163,203,242);
-  }
-  #third-quarter > .status-circle {
-    background-color: rgb(154,198,240);
-  }
-  #fourth-quarter > .status-circle {
-    background-color: rgb(124,181,236);
-  }
-  #last-mission > .status-circle {
-    background-color: ;
   }
 </style>
